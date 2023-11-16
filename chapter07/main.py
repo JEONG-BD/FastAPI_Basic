@@ -1,6 +1,7 @@
 from fastapi import FastAPI 
 from fastapi.responses import RedirectResponse 
 from fastapi import FastAPI 
+from fastapi.middleware import CORSMiddleware 
 from fastapi.responses import RedirectResponse 
 from contextlib import asynccontextmanager
 from database.connection import Settings
@@ -11,8 +12,15 @@ import uvicorn
 
 app = FastAPI()
 setting = Settings()
+origins = ['*']
 app.include_router(user_router, prefix='/user')
 app.include_router(event_router, prefix='/event')
+
+app.add_middleware(CORSMiddleware, 
+                   allow_origins=origins, 
+                   allow_credentials=True, 
+                   allow_methods=['*'], 
+                   allow_headers=['*'])
 
 
 @app.on_event('startup')
