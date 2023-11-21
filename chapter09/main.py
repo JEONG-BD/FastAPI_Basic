@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import Optional
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -39,10 +39,10 @@ async def put():
     return {'message':'hello from put route'}
 
 
-@app.get('/items', tags=['Item'])
-async def list_items(skip: int = 0, limit: int = 10):
-    return FAKE_ITEM_DB[skip:skip+limit]
-    # return {'message':'list items route'}
+#@app.get('/items', tags=['Item'])
+#async def list_items(skip: int = 0, limit: int = 10):
+    #return FAKE_ITEM_DB[skip:skip+limit]
+    #return {'message':'list items route'}
 
 
 @app.get('/items/{item_id}', tags=['Item'])
@@ -80,6 +80,19 @@ async def create_items(item_id: int, item: Item, q: str | None = None):
     return result
 
 
+@app.get('/items', tags=['Item'])
+async def read_items(remark: str | None = Query(..., min_length=3, max_length=10, description='This is a sample query string', alias='item-query')):
+    result = {'items': [{'item_id': 'Foo'}, {'item_id': 'Bar'}]}
+    if remark:
+        result.update({'remark': remark})
+    return result
+
+
+@app.get('/items_hidden', tags=['Item'])
+async def hidden_items(hidden_query: str | None = Query(None, include_in_schema=False)):
+    if hidden_query:
+        return {'hidden_query': hidden_query}
+    return {'hidden_query': 'Not found'}
 
 
 @app.get('/users', tags=['User'])
@@ -95,6 +108,7 @@ async def get_current_user():
 @app.get('/users/{user_id}', tags=['User'])
 async def get_user(user_id: str):
     return {'message':user_id}
+
 
 @app.get('/foods/{food_name}', tags=['Food'])
 async def get_food(food_name : FootEnum):
