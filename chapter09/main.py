@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import Optional
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Path
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -93,6 +93,19 @@ async def hidden_items(hidden_query: str | None = Query(None, include_in_schema=
     if hidden_query:
         return {'hidden_query': hidden_query}
     return {'hidden_query': 'Not found'}
+
+
+@app.get('/items_validation/{item_id}', tags=['Item'])
+async def read_item_validation(
+        *,
+        item_id: int = Path(..., title='The ID of the item to get', ge=10, le=100),
+        q: str | None = Query(None, alias='item-query'), size: float = Query(..., gt=0, lt=7.75)):
+
+    result = {'item_id': item_id, 'size': size}
+
+    if q:
+        result.update({'q': q})
+    return result
 
 
 @app.get('/users', tags=['User'])
