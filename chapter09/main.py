@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import Optional
-from fastapi import FastAPI, Query, Path, Body
-from pydantic import BaseModel
+from fastapi import FastAPI, Query, Path, Body, Cookie, Header, File, Form, Header
+from pydantic import BaseModel, Field, HttpUrl
+from typing import List
 
 app = FastAPI()
 
@@ -137,37 +138,132 @@ app = FastAPI()
 #         'food_name': food_name,
 #         'message': 'I like chocolate milk'
 #     }
+#
+# class Item(BaseModel):
+#     name: str
+#     description: str | None = None
+#     price: float
+#     tax: float | None = None
+#
+#
+# class User(BaseModel):
+#     firstname: str
+#     lastname: str | None = None
+#
+#
+# class Importance(BaseModel):
+#     importance: int
+#
+# @app.put('/items/{item_id}')
+# async def item(*,
+#                item_id: int = Path(..., title='The Id of the item to get', ge=0, le=150),
+#                q: str | None = None,
+#                item: Item | None = None,
+#                user: User,
+#                importance: int = Body(..., embed=True)):
+#
+#     result = {'item_id':item_id}
+#     if q:
+#         result.update({'q': q})
+#     if item:
+#         result.update({'item': item})
+#     if user:
+#         result.update({'user': user})
+#     if importance:
+#         result.update({'importance':importance})
+#     return result
+
+# class Item(BaseModel):
+#     name: str
+#     description: str | None = Field(title='The Description of the item', max_length=300)
+#     price: float = Field(..., gt=0, description='The price must be greater than zero')
+#
+#
+# @app.put('/items/{item_id}', tags=['Item'])
+# async def update_item(item_id : int, item: Item = Body(..., embed=True)):
+#     result = {'item_id': item_id, 'item': item}
+#     return result
+
+#
+# class Image(BaseModel):
+#     url: HttpUrl
+#     name: str
+#
+# class Item(BaseModel):
+#     name: str
+#     description: str | None = None
+#     price: float
+#     tax: float | None = None
+#     # tags: list[str] = []
+#     tags: set[str] = []
+#     image: list[Image] | None = None
+#
+# class Offer(BaseModel):
+#     name: str
+#     description: str | None = None
+#     price: float
+#     items: list[Item]
+#
+#
+# @app.put('/item/{item_id}', tags=['Item'])
+# async def update_item(item_id: int, item: Item):
+#     result = {'item_id': item_id, 'item': item}
+#     return result
+#
+#
+# @app.post('/offers', tags=['ETC'])
+# async def create_offer(offer: Offer = Body(..., embed=True)):
+#     return offer
+#
+#
+# @app.post('/images/multiple', tags=['ETC'])
+# async def create_multiple_images(images: list[Image]):
+#     return images
 
 class Item(BaseModel):
     name: str
-    description: str | None = None
+    description: str | None
     price: float
-    tax: float | None = None
+    tax: float | None
 
+    # name: str = Field(..., example='Foo')
+    # description: str | None = Field(..., example='A very nice Item')
+    # price: float = Field(..., example=16.25)
+    # tax: float | None = Field(..., example=1.67)
 
-class User(BaseModel):
-    firstname: str
-    lastname: str | None = None
+    # class Config :
+    #     schema_extra = {
+    #         'example': {
+    #             'name': 'Foo',
+    #             'description': 'A very nice Item',
+    #             'price': 16.25,
+    #             'tax': 1.67
+    #         }
+    #     }
 
-
-class Importance(BaseModel):
-    importance: int
-
-@app.put('/items/{item_id}')
-async def item(*,
-               item_id: int = Path(..., title='The Id of the item to get', ge=0, le=150),
-               q: str | None = None,
-               item: Item | None = None,
-               user: User,
-               importance: int = Body(..., embed=True)):
-
-    result = {'item_id':item_id}
-    if q:
-        result.update({'q': q})
-    if item:
-        result.update({'item': item})
-    if user:
-        result.update({'user': user})
-    if importance:
-        result.update({'importance':importance})
+@app.put('/item/{item_id}', tags=['Item'])
+async def update_item(
+        item_id: int,
+        item: Item = Body(
+            ...,
+            openapi_examples={
+                'normal': {
+                    'name': 'Foo',
+                    'description': 'A very nice Item',
+                    'price': 16.25,
+                    'tax': 1.67
+                },
+                'converted': {
+                    'summary': 'Amn example with converted data',
+                    'description': 'FastAPI can convert price `string` to actual `numbers` automatic',
+                    'value': {'name': 'Bar', 'price': '16.25'}
+                },
+                'invalid': {
+                    'summary': 'Invalid data is rejected with an error',
+                    'value': {'name': 'Baz', 'price': 'sixteen point two five'}
+                }
+            }
+        )
+):
+    result = {'item_id': item_id, 'item': item}
     return result
