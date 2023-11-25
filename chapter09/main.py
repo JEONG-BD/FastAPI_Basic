@@ -1,5 +1,7 @@
 from enum import Enum
 from typing import Optional
+from uuid import UUID
+from datetime import datetime, time, timedelta
 from fastapi import FastAPI, Query, Path, Body, Cookie, Header, File, Form, Header
 from pydantic import BaseModel, Field, HttpUrl
 from typing import List
@@ -220,11 +222,11 @@ app = FastAPI()
 # async def create_multiple_images(images: list[Image]):
 #     return images
 
-class Item(BaseModel):
-    name: str
-    description: str | None
-    price: float
-    tax: float | None
+# class Item(BaseModel):
+#     name: str
+#     description: str | None
+#     price: float
+#     tax: float | None
 
     # name: str = Field(..., example='Foo')
     # description: str | None = Field(..., example='A very nice Item')
@@ -241,29 +243,48 @@ class Item(BaseModel):
     #         }
     #     }
 
-@app.put('/item/{item_id}', tags=['Item'])
-async def update_item(
-        item_id: int,
-        item: Item = Body(
-            ...,
-            openapi_examples={
-                'normal': {
-                    'name': 'Foo',
-                    'description': 'A very nice Item',
-                    'price': 16.25,
-                    'tax': 1.67
-                },
-                'converted': {
-                    'summary': 'Amn example with converted data',
-                    'description': 'FastAPI can convert price `string` to actual `numbers` automatic',
-                    'value': {'name': 'Bar', 'price': '16.25'}
-                },
-                'invalid': {
-                    'summary': 'Invalid data is rejected with an error',
-                    'value': {'name': 'Baz', 'price': 'sixteen point two five'}
-                }
+# @app.put('/item/{item_id}', tags=['Item'])
+# async def update_item(
+#         item_id: int,
+#         item: Item = Body(
+#             ...,
+#             openapi_examples={
+#                 'normal': {
+#                     'name': 'Foo',
+#                     'description': 'A very nice Item',
+#                     'price': 16.25,
+#                     'tax': 1.67
+#                 },
+#                 'converted': {
+#                     'summary': 'Amn example with converted data',
+#                     'description': 'FastAPI can convert price `string` to actual `numbers` automatic',
+#                     'value': {'name': 'Bar', 'price': '16.25'}
+#                 },
+#                 'invalid': {
+#                     'summary': 'Invalid data is rejected with an error',
+#                     'value': {'name': 'Baz', 'price': 'sixteen point two five'}
+#                 }
+#             }
+#         )
+#     ):
+#     result = {'item_id': item_id, 'item': item}
+#     return result
+
+
+@app.put('/items/{item_id}')
+async def read_items(item_id: UUID,
+                     start_date: datetime | None = Body(None),
+                     end_date: datetime | None = Body(None),
+                        repeat_at: time | None = Body(None),
+                        process_after : timedelta | None = Body(None),
+                     ):
+    start_process = start_date + process_after
+    duration = end_date - start_process
+    return {'item_id': item_id,
+            'start_date': start_date,
+            'end_date': end_date,
+            'repeat_at': repeat_at,
+            'process_after': process_after,
+            'start_process': start_process,
+            'duration': duration
             }
-        )
-):
-    result = {'item_id': item_id, 'item': item}
-    return result
