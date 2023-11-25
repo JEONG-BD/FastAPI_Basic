@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Optional, Literal, Union
 from uuid import UUID
 from datetime import datetime, time, timedelta
-from fastapi import FastAPI, Query, Path, Body, Cookie, Header, File, Form, Header
+from fastapi import FastAPI, Query, Path, Body, Cookie, Header, File, Form, Header, status
 from pydantic import BaseModel, Field, HttpUrl, EmailStr
 from typing import List
 
@@ -366,94 +366,103 @@ app = FastAPI()
 # @app.post('/user/', response_model=UserOut)
 # async def create_user(user: UserIn):
 #     return user
-class UserBase(BaseModel):
-    username: str
-    email: EmailStr
-    full_name: str | None = None
+# class UserBase(BaseModel):
+#     username: str
+#     email: EmailStr
+#     full_name: str | None = None
+#
+#
+# class UserIn(UserBase):
+#     password: str
+#
+#
+# class UserOut(UserBase):
+#     pass
+#
+# class UserInDB(UserBase):
+#     hashed_password: str
+#
+# def fake_password_hashed(raw_password: str):
+#     return f'supersecret{raw_password}'
+#
+#
+# def fake_save_user(user_in: UserIn):
+#     hashed_password = fake_password_hashed(user_in.password)
+#     print(hashed_password)
+#     user_in_db = UserInDB(**user_in.dict(), hashed_password=hashed_password)
+#     print('user saved')
+#     print('user_in.dict', user_in.dict())
+#     return user_in_db
+#
+#
+# @app.post('/user/',
+#           tags=['User'],
+#           description='User Create',
+#           response_model=UserOut,
+#           )
+# async def create_user(user_in: UserIn):
+#     print(user_in)
+#     user_saved = fake_save_user(user_in)
+#     return user_saved
+#
+#
+# class ItemBase(BaseModel):
+#     description: str
+#     type: str
+#
+# class CarItem(ItemBase):
+#     type = 'car'
+#
+#
+# class PlaneItem(ItemBase):
+#     type = 'plane'
+#     size: int
+#
+#
+# class ListItem(BaseModel):
+#     name: str
+#     description: str
+#
+#
+# list_item = [
+#     {'name': 'Foo', 'description': 'There comes my hero'},
+#     {'name': 'Red', 'description': 'It\'s my aeroplane'},
+#
+# ]
+#
+# items = {
+#     'item1': {'description': 'All my friends drive a low rider', 'type': 'car'},
+#     'item2': {'description': 'Music is y aeroplane it\'s my aeroplane', 'type': 'plane', 'size': 5}
+# }
+#
+# @app.get('/items/{item_id}',
+#          tags=['Items'],
+#          response_model= PlaneItem | CarItem)
+# async def read_item(item_id: Literal['item1', 'item2']) -> PlaneItem | CarItem :
+#     return items[item_id]
+#
+#
+# @app.get('/list_items/',
+#          tags=['Items'],
+#          response_model=list[ListItem])
+# async def read_image():
+#     return items
+#
+# @app.get('/arbitrary/',
+#          tags=['Items'],
+#          response_model=dict[str, float])
+# async def get_arbitrary():
+#     return {'foo': 1, 'bar': '2'}
+
+@app.post('/items/',
+          tags=['Items'],
+          status_code=status.HTTP_201_CREATED)
+async def create_item(name: str):
+    return {'name': name}
 
 
-class UserIn(UserBase):
-    password: str
-
-
-class UserOut(UserBase):
-    pass
-
-class UserInDB(UserBase):
-    hashed_password: str
-
-def fake_password_hashed(raw_password: str):
-    return f'supersecret{raw_password}'
-
-
-def fake_save_user(user_in: UserIn):
-    hashed_password = fake_password_hashed(user_in.password)
-    print(hashed_password)
-    user_in_db = UserInDB(**user_in.dict(), hashed_password=hashed_password)
-    print('user saved')
-    print('user_in.dict', user_in.dict())
-    return user_in_db
-
-
-@app.post('/user/',
-          tags=['User'],
-          description='User Create',
-          response_model=UserOut,
-          )
-async def create_user(user_in: UserIn):
-    print(user_in)
-    user_saved = fake_save_user(user_in)
-    return user_saved
-
-
-class ItemBase(BaseModel):
-    description: str
-    type: str
-
-class CarItem(ItemBase):
-    type = 'car'
-
-
-class PlaneItem(ItemBase):
-    type = 'plane'
-    size: int
-
-
-class ListItem(BaseModel):
-    name: str
-    description: str
-
-
-list_item = [
-    {'name': 'Foo', 'description': 'There comes my hero'},
-    {'name': 'Red', 'description': 'It\'s my aeroplane'},
-
-]
-
-items = {
-    'item1': {'description': 'All my friends drive a low rider', 'type': 'car'},
-    'item2': {'description': 'Music is y aeroplane it\'s my aeroplane', 'type': 'plane', 'size': 5}
-}
-
-@app.get('/items/{item_id}',
-         tags=['Items'],
-         response_model= PlaneItem | CarItem)
-async def read_item(item_id: Literal['item1', 'item2']) -> PlaneItem | CarItem :
-    return items[item_id]
-
-
-@app.get('/list_items/',
-         tags=['Items'],
-         response_model=list[ListItem])
-async def read_image():
-    return items
-
-@app.get('/arbitrary/',
-         tags=['Items'],
-         response_model=dict[str, float])
-async def get_arbitrary():
-    return {'foo': 1, 'bar': '2'}
-
-
-
-
+@app.delete('/items/{primary_key}',
+          tags=['Items'],
+          status_code=status.HTTP_204_NO_CONTENT)
+async def delete_item(primary_key: str):
+    return {'primary_key': primary_key}
